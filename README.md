@@ -1,2 +1,4 @@
 pyblebars
 =========
+
+License: MIT
