@@ -24,15 +24,19 @@ atext03='''
       text02_2
 '''
 
-atext04='''text04'''
+atext04='''text04 - %(myfunc01().lower())s'''
 
 atext05='''text05'''
 
 atext06='''text06{%(args[0])s,%(args[1])s,%(args[2])s,%(kwargs['p1'])d,%(kwargs['p2'])d,%(kwargs['p3'])s}'''
 
 atext07='''text07'''
+
+class MyReplacer(pyblebars.PyblebarReplacer):
+   def myfunc01(self):
+      return 'MYFUNC01'
       
-atr=pyblebars.PyblebarReplacer()
+atr=MyReplacer()
 atr.register('atext01',atext01)
 atr.register('atext02',atext02)
 atr.register('atext03',atext03)
