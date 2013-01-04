@@ -4,9 +4,8 @@ VERBOSE=0
 
 class PyblebarReplacer(dict):
    def __init__(self):
-      self.t={}
-      self.a=[]
-      self.k=[]
+      self._t={}
+      self._a=[]
    def eval(self,value):
       if type(value)!=type(''):
          return value
@@ -14,7 +13,7 @@ class PyblebarReplacer(dict):
          if VERBOSE:
             print 'GETATTR:',value
          return getattr(self,value)
-      if self.t.has_key(value):
+      if self._t.has_key(value):
          if VERBOSE:
             print 'GET:',value
          return self.call(value)
@@ -29,21 +28,19 @@ class PyblebarReplacer(dict):
    def __getitem__(self,name):
       return self.eval(name)
    def register(self,atemplatename,atemplattext):
-      self.t[atemplatename]=atemplattext
+      self._t[atemplatename]=atemplattext
       return ''
    def pushargs(self,*args,**kwargs):
-      self.a.append(args)
+      self._a.append((args,kwargs))
       self.args=args
-      self.k.append(kwargs)
       self.kwargs=kwargs
    def popargs(self):
-      self.a.pop()
-      self.k.pop()
+      self.args,self.kwargs=self._a.pop()
    def call(self,atemplatename,*args,**kwargs):
       if VERBOSE:
          print '  CALL:',atemplatename,args
       self.pushargs(*args,**kwargs)
-      s=self.t[atemplatename]
+      s=self._t[atemplatename]
       ret=s%self
       self.popargs()
       return ret
@@ -53,3 +50,14 @@ class PyblebarReplacer(dict):
       if condition:
          return vtrue
       return vfalse
+   def each(self,atemplatename,args,aseparator='',abefore='',aafter=''):
+      if VERBOSE:
+         print 'EACH',atemplatename,args,aseparator
+      ret=[]
+      i=0
+      for arg in args:
+         ret.append(self.call(atemplatename,arg,index=i))
+         i=i+1
+      if i:
+         return abefore+aseparator.join(ret)+aafter
+      return aseparator.join(ret)
