@@ -5,7 +5,7 @@ from pyblebars import __version__
 setup(
     name="pyblebars",
     version=__version__,
-    description="Generate text by template. For lazy developers with code automation ambitions",
+    description="Generate text by obvious templates. Intended for lazy developers with code automation ambitions.",
     author="Qyloxe",
     author_email="qyloxe@gmail.com",
     url="https://github.com/qyloxe/pyblebars",

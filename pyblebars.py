@@ -1,21 +1,37 @@
 import sys
 
-__version_info__ = ('0', '1', '2')
+__version_info__ = ('0', '1', '4')
 __version__ = '.'.join(__version_info__)
 
 VERBOSE=0
 
-class PyblebarReplacer(dict):
-   def __init__(self):
+class AttrDict(dict):
+   def __getattr__(self,value):
+      if self.has_key(value):
+         v=self.__getitem__(value)
+         if type(v)==type({}):
+            return AttrDict(v)
+         return v
+
+class Pyblebars(dict):
+   def __init__(self,**kwargs):
       self._t={}
       self._a=[]
+      self._r=[]
+      self.args=None
+      self.kwargs=None
+      for k,v in kwargs.items():
+         setattr(self,k,v)
    def eval(self,value):
       if type(value)!=type(''):
          return value
       if hasattr(self,value):
          if VERBOSE:
             print 'GETATTR:',value
-         return getattr(self,value)
+         ret=getattr(self,value)
+         if type(ret)==type({}):
+            return AttrDict(ret)
+         return ret
       if self._t.has_key(value):
          if VERBOSE:
             print 'GET:',value
@@ -30,20 +46,36 @@ class PyblebarReplacer(dict):
       return ret
    def __getitem__(self,name):
       return self.eval(name)
-   def register(self,atemplatename,atemplattext):
-      self._t[atemplatename]=atemplattext
+   def __setitem__(self,name,value):
+      self.register(name,value)
+   def register(self,templatename,templattext):
+      self._t[templatename]=templattext
       return ''
-   def pushargs(self,*args,**kwargs):
-      self._a.append((args,kwargs))
+   def pushargs(self,templatename,*args,**kwargs):
+      if VERBOSE:
+         print '    PUSHARGS:',args,kwargs
+      self._r.append(templatename)
+      self._a.append((self.args,self.kwargs))
       self.args=args
       self.kwargs=kwargs
    def popargs(self):
       self.args,self.kwargs=self._a.pop()
-   def call(self,atemplatename,*args,**kwargs):
+      self._r.pop()
       if VERBOSE:
-         print '  CALL:',atemplatename,args
-      self.pushargs(*args,**kwargs)
-      s=self._t[atemplatename]
+         print '    POPARGS:',self.args,self.kwargs
+   def call(self,templatename,*args,**kwargs):
+      if VERBOSE:
+         print '  CALL:',templatename,args,kwargs
+      if templatename in self._r:
+         if VERBOSE:
+            print '    RECURSION:',templatename
+         return ''
+      s=self._t[templatename]
+      self.pushargs(templatename,*args,**kwargs)
+      if VERBOSE:
+         print '    TEMPLATE START:'
+         print s
+         print '    TEMPLATE END:'
       ret=s%self
       self.popargs()
       return ret
@@ -53,14 +85,28 @@ class PyblebarReplacer(dict):
       if condition:
          return vtrue
       return vfalse
-   def each(self,atemplatename,args,aseparator='',abefore='',aafter=''):
+   def each(self,templatename,args,separator='',before='',after=''):
       if VERBOSE:
-         print 'EACH',atemplatename,args,aseparator
+         print 'EACH',templatename,args,separator
       ret=[]
       i=0
       for arg in args:
-         ret.append(self.call(atemplatename,arg,index=i))
+         ret.append(self.call(templatename,arg,index=i))
          i=i+1
+      print 'ret:',ret
       if i:
-         return abefore+aseparator.join(ret)+aafter
-      return aseparator.join(ret)
+         return before+separator.join(ret)+after
+      return separator.join(ret)
+   def case(self,value,choices,default=''):
+      if VERBOSE:
+         print 'CASE',value,choices,default
+      return choices.get(value,default)
+   def set(self,name,value):
+      if VERBOSE:
+         print 'SET',name,value
+      setattr(self,name,value)
+      return ''
+   def chain(self,*args,**kwargs):
+      if VERBOSE:
+         print 'CHAIN',args,kwargs
+      return kwargs.get('before','')+kwargs.get('separator','').join(args)+kwargs.get('after','')
