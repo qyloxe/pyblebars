@@ -8,7 +8,7 @@ atext01='''[before]
 [after]
 '''
 
-atext02='''text02: {%(args[0])s,%(args[1])s,%(args[2])s,%(kwargs['p1'])s,%(kwargs['p2'])s,%(kwargs['p3'])s}'''
+atext02='''text02: %(args[0])s,%(args[1])s,%(args[2])s,%(kwargs['p1'])s,%(kwargs['p2'])s,%(kwargs['p3'])s'''
 
 pb=pyblebars.Pyblebars()
 pb['atext01']=atext01

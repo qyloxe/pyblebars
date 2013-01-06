@@ -93,7 +93,6 @@ class Pyblebars(dict):
       for arg in args:
          ret.append(self.call(templatename,arg,index=i))
          i=i+1
-      print 'ret:',ret
       if i:
          return before+separator.join(ret)+after
       return separator.join(ret)
