@@ -1,4 +1,5 @@
 import sys
+import types
 
 __version_info__ = ('0', '1', '4')
 __version__ = '.'.join(__version_info__)
@@ -23,7 +24,7 @@ class Pyblebars(dict):
       for k,v in kwargs.items():
          setattr(self,k,v)
    def eval(self,value):
-      if type(value)!=type(''):
+      if not isinstance(value,types.StringTypes):
          return value
       if hasattr(self,value):
          if VERBOSE:
